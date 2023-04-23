@@ -14,3 +14,13 @@ class Review(BaseModel):
     def __init__(self, *args, **kwargs):
         """Instantiate Review object"""
         super().__init__(*args, **kwargs)
+    
+    def mapInput(self, *args):
+        """ Maps non keyworded arguments 
+        
+        Parameters:
+            [name, state_id]
+        """
+        self.text=args[0]
+        self.place_id=args[1]
+        self.user_id=args[2]

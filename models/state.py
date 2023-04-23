@@ -8,7 +8,15 @@ class State(BaseModel):
     Represent a state model object
     """
     name = ""
-
-    def __init__(self, *args, **kwargs):
-        """Instantiate State object"""
-        super().__init__(*args, **kwargs)
+        
+    def mapInput(self, *args):
+        """ Maps non keyworded arguments 
+        
+        Parameters:
+            [name]
+        """
+        print(self.__class__.__name__, args[0])
+        if(len(args[0]) <=0):
+            raise ValueError("[State] Missing name value")
+            return
+        self.name=args[0]

@@ -39,7 +39,7 @@ class FileStorage:
 
         key = FileStorage.makeKey(obj.__class__.__name__, obj.id)
         FileStorage.__objects[key] = obj
-
+        return obj
     def remove(self, key):
         """Removes a key from the __objects"""
         # Checks if the key exist

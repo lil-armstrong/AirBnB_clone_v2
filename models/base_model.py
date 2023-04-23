@@ -11,20 +11,29 @@ class BaseModel:
 
     def __init__(self, *args, **kwargs):
         """Initializes the base class instance"""
-        self.id = str(uuid4())
-        self.created_at = datetime.today()
-        self.updated_at = datetime.today()
-
-        if (len(kwargs) != 0):
-            for k, v in kwargs.items():
-                if k != "__class__":
-                    if (k in ["created_at", "updated_at"]):
-                        v = datetime.fromisoformat(v)
-                    self.__dict__[k] = v
-
+        try:
+            self.id = str(uuid4())
+            self.created_at = datetime.today()
+            self.updated_at = datetime.today()
+            
+            if (len(kwargs) != 0):
+                for k, v in kwargs.items():
+                    if k != "__class__":
+                        if (k in ["created_at", "updated_at"]):
+                            v = datetime.fromisoformat(v)
+                        self.__dict__[k] = v
+            else:
+                self.mapInput(*args) 
+        except Exception as e:
+            print(e)
+            return None
         else:
             models.storage.new(self)
-
+            
+    def mapInput(self, *args):
+        """ Maps non keyworded arguments """
+        pass
+    
     def __str__(self):
         """Return string representation of the Base class"""
         return "[{}] ({}) {}".format(

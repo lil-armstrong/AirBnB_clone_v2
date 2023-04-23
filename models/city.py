@@ -13,3 +13,12 @@ class City(BaseModel):
     def __init__(self, *args, **kwargs):
         """Instantiate City object"""
         super().__init__(*args, **kwargs)
+
+    def mapInput(self, *args):
+        """ Maps non keyworded arguments 
+        
+        Parameters:
+            [name, state_id]
+        """
+        self.name=args[0]
+        self.state_id=args[0]

@@ -11,6 +11,7 @@ import models
 import signal
 import re
 import sys
+import json
 storage = models.storage
 
 """Console module is the entry point of the command interpreter"""
@@ -40,7 +41,7 @@ class HBNBCommand (Cmd):
         HBNBCommand.prompt = prompt
         HBNBCommand.file = "cmd.json"
         # self.do_help()
-        signal.signal(signal.SIGINT, handler=self._ctrl_c_handler)
+        # signal.signal(signal.SIGINT, handler=self._ctrl_c_handler)
         self._interrupted = False
 
     def _ctrl_c_handler(self, signal, frame):
@@ -56,7 +57,7 @@ class HBNBCommand (Cmd):
         if line == 'EOF':
             return 'quit'
 
-        return self.parseLine(line)
+        return self.parse(line)
 
     def isMissingClass(self, cls):
         """Check if class name is missing"""
@@ -128,9 +129,13 @@ The question mark "\x1b[34m\x1b[1m?\x1b[0m" can be used as an alias for
         for cmd in commands:
             Cmd.do_help(self, cmd)
 
-    def do_create(self, line=""):
+    def do_create(self, line:str=""):
         """Usage: create <class>
-Create a new class instance and print its id.\n"""
+Create a new class instance and print its id.\n
+
+Parameters:
+  line(str): commandline expression
+"""
         (cmd, args, ln) = Cmd.parseline(self, line)
 
         if cmd is None:
@@ -141,10 +146,17 @@ Create a new class instance and print its id.\n"""
             if cmd not in HBNBCommand.__classes:
                 self.stdout.write("** class doesn't exist **\n")
                 return False
-
-        new = eval(cmd)()
-        storage.save()
-        self.stdout.write("{}\n".format(new.id))
+        parg = parseArgs(args)
+        cls = eval(cmd)
+        
+        if isinstance(parg, (tuple,)):
+            new = cls(*parg)
+        else:
+            new = cls(**parg)
+        print(new)
+        # if(new is not None):
+            # storage.save()
+            # self.stdout.write("{}\n".format(new.id))
 
     def do_show(self, line):
         """show model id
@@ -196,10 +208,6 @@ Retrieve the number of instances of a given class.
 
         self.stdout.write("{}\n".format(str(count)))
 
-    def do_fake(self, line):
-        """Fake command"""
-        (cmd, args, ln) = Cmd.parseline(self, line)
-        print((cmd, args, ln))
 
     def do_all(self, line):
         """Usage: all or all <class> or <class>.all()
@@ -270,29 +278,85 @@ attribute.
                             pass
 
                         storage.save()
+    def do_fake(self, line):
+        """Fake command"""
+        (cmd, args, ln) = Cmd.parseline(self, line)
+        print((cmd, parseArgs(args), ln))
 
-    def parseLine(self, line=""):
+    def parse(self, line=""):
         """Parse line"""
-        match = re.search("([A-Za-z]?=*\S*)\.([A-Za-z]?=*\S*)\((.*)\)", line)
+        pattern= re.compile(r"([A-Za-z]?=*\S*)\.([A-Za-z]?=*\S*)\((.*)[,]*\)")
+        match=pattern.search(line)
+        
+        return_value = line
+        # get list of supported cmd commands
         names = self.get_names()
         # commands = line.strip().split(".")
-
+        
+        # Handle dotted command
         if match and len(match.groups()) >= 2:
             # mtd, *args = mtd.split("(")
-            cls, mtd, *args = match.groups()
+            cls, mtd, args = match.groups()
+            
             try:
-                args = [v for v in ",".join(args).split(
-                    ",") if isinstance(v, (str)) and len(v)]
-
+                # keyworded argument
                 if mtd in [x[3:] for x in names
                            if x.startswith("do_")]:
-                    command = "{} {} {}".format(mtd, cls, " ".join(args))
-                    return command
+                    command = "{} {} {}".format(mtd, cls, args)
+                    
+                    return_value = command
             except Exception as e:
                 print("\n[ERR! ({})]\n".format(e), file=sys.stderr)
                 pass
-        return line
+        return return_value
 
+    
+def parseArgs(arg):
+    """  """
+    
+    pattern = re.compile(r'^((\s*\w+\s*)=(\s*\S+\s*))*$'
+)
+    keyed = pattern.findall(arg)
+    
+    args = tuple(t.replace('_', ' ').replace('"', r'\"') for t in arg.split(','))
+    if len(keyed) > 0:
+        arg_pattern = re.compile(r"\S+=(?:\"[^\"]*\"|[^,]*)+")
+        found = arg_pattern.findall(arg)
+        if len(found) > 0:
+            args = found
+        param = dict()
+        for part in args:
+            match = pattern.search(part)
+            groups = match.groups()
+            
+            if match:
+                key = match.group(2)
+                value = match.group(3)
+                if key is not None and value is not None:
+                    try:
+                        value = value.replace('_', ' ').replace('"', r'\"')
+                    except Exception as e:
+                        pass
+                    else:
+                        print(value)
+                        param[key.strip()] = value.strip()
+                        
+        return param
+    return args
 
+def isValidInt(text:str)->bool:
+    """ Check if string is an integer """
+    pattern = re.compile(r"^-?\d+$")
+    return bool(pattern.match(text))
+    
+def isValidFloat(num:str)->bool:
+    """ Check if string is a float """
+    pattern = re.compile(r"^-?\d+(?:\.\d+)?$")
+    return bool(pattern.match(num))
+    
+def isValidBool(value:str)->bool:
+    """ Check if string is a boolean """
+    return value.lower() in ['true', 'false']
+    
 if __name__ == '__main__':
     HBNBCommand().cmdloop()

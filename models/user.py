@@ -15,3 +15,16 @@ class User(BaseModel):
     def __init__(self, *args, **kwargs):
         """Instantiate User object"""
         super().__init__(*args, **kwargs)
+        
+    def mapInput(self, *args):
+        """ Maps non keyworded arguments 
+        
+        Parameters:
+            [email, password, first_name, last_name]
+        """
+        print(self.__class__.__name__, args)
+        self.email = args[0]
+        self.password = args[1]
+        self.first_name = args[2]
+        self.last_name = args[3]
+        
