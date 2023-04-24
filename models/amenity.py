@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from models.base_model import BaseModel
+from typing import Tuple
 """Amenity model module"""
 
 
@@ -7,17 +8,14 @@ class Amenity(BaseModel):
     """Amenity class definition
     Represent a Amenity model object
     """
-    name:str = ""
+    name: str = ''
 
-    def __init__(self, *args, **kwargs):
-        """Instantiate Amenity object"""
-        super().__init__(*args, **kwargs)
-    
-    def mapInput(self, *args):
-        """ Maps non keyworded arguments 
-        
+    def mapInput(self, *args: str):
+        """ Maps non keyworded arguments
+
         Parameters:
-            [name]
+            *args (Tuple[name:`str`]):\
+                Amenity attribute argument
         """
         [name] = args
-        self.name=name
+        self.name = name

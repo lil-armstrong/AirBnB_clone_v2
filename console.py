@@ -62,7 +62,7 @@ class HBNBCommand (Cmd):
     def isMissingClass(self, cls):
         """Check if class name is missing"""
         if cls is None:
-            self.stdout.write("** class name missing **\n")
+            print("** class name missing **", file=sys.stderr)
             return True
         return False
 
@@ -72,24 +72,24 @@ class HBNBCommand (Cmd):
         if cls in HBNBCommand.__classes:
             return True
 
-        self.stdout.write("** class doesn't exist **\n")
+        print("** class doesn't exist **", file=sys.stderr)
         return False
 
     def isIdMissing(self, id):
         """Check if Id is None"""
         if id is None or len(id) == 0:
-            self.stdout.write("** instance id missing **\n")
+            print("** instance id missing **", file=sys.stderr)
             return True
         return False
 
-    def getInstanceByKey(self, key):
+    def getInstanceByKey(self, key: str):
         """Check if the instance of the class name does exist for the id"""
         objs = storage.all()
 
         if key in objs:
             return objs[key]
 
-        self.stdout.write("** no instance found **\n")
+        print("** no instance found **", file=sys.stderr)
         return None
 
     def do_quit(self, line):
@@ -129,7 +129,7 @@ The question mark "\x1b[34m\x1b[1m?\x1b[0m" can be used as an alias for
         for cmd in commands:
             Cmd.do_help(self, cmd)
 
-    def do_create(self, line:str)->None:
+    def do_create(self, line: str) -> None:
         """Usage: create <class>
 Create a new class instance and print its id.\n
 
@@ -137,7 +137,6 @@ Parameters:
   line(str): commandline expression
 """
         (cmd, args, ln) = Cmd.parseline(self, line)
-
         if cmd is None:
             self.stdout.write("** class name missing **\n")
             return False
@@ -146,31 +145,30 @@ Parameters:
             if cmd not in HBNBCommand.__classes:
                 self.stdout.write("** class doesn't exist **\n")
                 return False
-        parg = parseArgs(args)
-        # print(parg)
         cls = eval(cmd)
-        
+
+        parg = parseArgs(args)
+        print(parg)
+
         if isinstance(parg, (tuple,)):
             new = cls(*parg)
         else:
             new = cls(**parg)
-        print(new)
-        if(new is not None):
-            storage.save()
-            self.stdout.write("{}\n".format(new.id))
+        storage.save()
+        self.stdout.write("{}\n".format(new.id))
 
-    def do_show(self, line):
+    def do_show(self, line: str):
         """show model id
 Print the string representation of an instance based \
 on the class name and id
 """
 
-        (cmd, id, ln) = Cmd.parseline(self, line)
+        (cmd, args, ln) = Cmd.parseline(self, line)
+        if (self.isValidClass(cmd) and not self.isMissingClass(cmd)):
+            ids = parseArgs(args.replace('id=', r''))
 
-        if (not self.isMissingClass(cmd)):
-            if (self.isValidClass(cmd)):
+            for id in ids:
                 if (not self.isIdMissing(id)):
-                    id = id.strip().split()[0]
                     key = storage.makeKey(cmd, id)
                     instance = self.getInstanceByKey(key)
                     if (instance is not None):
@@ -180,166 +178,166 @@ on the class name and id
         """Usage: destroy <class> <id> or <class>.destroy(<id>)\n
 Delete a class instance based on the model name and id.
 """
-        (cmd, id, ln) = Cmd.parseline(self, line)
+        (cmd, args, ln) = Cmd.parseline(self, line)
 
-        if (not self.isMissingClass(cmd)):
-            if (self.isValidClass(cmd)):
+        if (self.isValidClass(cmd) and not self.isMissingClass(cmd)):
+            ids = parseArgs(args.replace('id=', r''))
+            for id in ids[:1]:
                 if (not self.isIdMissing(id)):
-                    id = id.strip().split()[0]
                     key = storage.makeKey(cmd, id)
                     instance = self.getInstanceByKey(key)
                     if (instance is not None):
-
-                        new = storage.remove(key)
+                        storage.remove(key)
                         storage.save()
 
-    def do_count(self, line):
+    def do_count(self, line: str):
         """Usage: count <class> or <class>.count()\n
 Retrieve the number of instances of a given class.
 """
-        (cmd, id, ln) = Cmd.parseline(self, line)
-        count = 0
-        all = storage.all()
+        (cmd, args, ln) = Cmd.parseline(self, line)
+        stored = storage.all()
+        count = len(stored)
 
-        if (not self.isMissingClass(cmd)):
-            if (self.isValidClass(cmd)):
-                for cls in all.values():
-                    if cls.__class__.__name__ == cmd:
-                        count += 1
+        try:
 
-        self.stdout.write("{}\n".format(str(count)))
+            if ln:
+                count = {}
+                models = set(re.split(r'[, ]+', ln))
+                for model in models:
+                    if model not in HBNBCommand.__classes:
+                        raise Exception("** class doesn't exist **")
+                    for item in stored.values():
+                        if item.__class__.__name__ == model:
+                            count[model] = count.get(model, 0) + 1
 
+        except Exception as e:
+            print(e, file=sys.stderr)
+        else:
+            self.stdout.write("{}\n".format(count))
 
-    def do_all(self, line):
+    def do_all(self, line: str):
         """Usage: all or all <class> or <class>.all()
 Display string representations of all instances of a given class. 
 If no class is specified, displays all instantiated objects.
 """
         (cmd, args, ln) = Cmd.parseline(self, line)
-        all_obj = storage.all()
-        models = args
-        objs = []
-
-        if models is not None:
-            models = set(line.split())
+        stored = storage.all()
+        found = []
+        if ln:
+            models = set(re.split(r'[, ]+', ln))
+            for model in models:
+                if model not in HBNBCommand.__classes:
+                    print("** class doesn't exist **", file=sys.stderr)
+                else:
+                    for obj in stored.values():
+                        if model == obj.__class__.__name__:
+                            found.append(str(obj))
         else:
-            models = set()
+            found = [str(v) for v in stored.values()]
+        for f in found:
+            print([f])
 
-        if not all([model in HBNBCommand.__classes for model in models]):
-            self.stdout.write("** class doesn't exist **\n")
-        else:
-            if len(models) != 0:
-                for model in all_obj.values():
-                    cls = model.__class__.__name__
-                    if cls in models:
-                        objs.append(model)
-            else:
-                objs = all_obj.values()
-
-            self.stdout.write("{}\n".format(str([str(v) for v in objs])))
-
-    def do_update(self, line):
+    def do_update(self, line: str):
         """update
 Usage: update <class name> <id> <attribute name> "<attribute value>"
 Updates an instance based on the class name and id by adding or updating \
 attribute.
 """
-        (cmd, args, ln) = Cmd.parseline(self, line)
+        try:
+            (cmd, args, ln) = Cmd.parseline(self, line)
 
-        if (not self.isMissingClass(cmd)):
-            if (self.isValidClass(cmd)):
-                if (not self.isIdMissing(args)):
-                    id, *attrib = args.strip().split()
-                    key = storage.makeKey(cmd, id)
-                    instance = self.getInstanceByKey(key)
-                    if (instance is not None):
-                        if len(attrib) == 0:
-                            self.stdout.write("** attribute name missing **\n")
-                            return
-                        if len(attrib) != 2:
-                            self.stdout.write("** value missing **\n")
-                            return
+            if (not self.isMissingClass(cmd)):
+                if (self.isValidClass(cmd)):
+                    if (not self.isIdMissing(args)):
+                        parg = parseArgs(args)
+                        if isinstance(parg, (tuple,)):
+                            (id, *attrib) = parg
+                        else:
+                            id = parg.pop('id')
+                            attrib = parg
 
-                        try:
-                            attr_name, attr_value = attrib
-                            _type = str
+                        key = storage.makeKey(cmd, id)
+                        instance = self.getInstanceByKey(key)
 
-                            # attr_value = eval(attr_value)
+                        if (instance is not None):
+                            if len(attrib) == 0:
+                                raise ValueError(
+                                    "** attribute name missing **\n")
+                            if isinstance(attrib, (list)):
+                                index = 2
+                                while index <= len(attrib):
+                                    [key, value] = attrib[index-2: index]
+                                    index = index + 2
 
-                            if isinstance(attr_value, (str)):
-                                attr_value = str(attr_value).replace("'", "")
+                                    instance.update(key, value)
+                            else:
+                                for k, v in attrib:
+                                    instance.update(k, v)
+        except Exception as e:
+            print("[**do_update**]", e, file=sys.stderr)
+            return False
+        else:
+            storage.save()
 
-                            if attr_name in instance.__class__.__dict__.keys():
-                                _type = type(
-                                    instance.__getattribute__(attr_name))
-                            instance.update(attr_name, _type(attr_value))
-
-                        except Exception as e:
-                            print(e)
-                            pass
-
-                        storage.save()
-    def do_fake(self, line):
+    def do_fake(self, line: str):
         """Fake command"""
         (cmd, args, ln) = Cmd.parseline(self, line)
-        print((cmd, parseArgs(args), ln))
+        print((cmd, parseArgs(args), ln), )
 
-    def parse(self, line=""):
-        """Parse line"""
-        pattern= re.compile(r"([A-Za-z]?=*\S*)\.([A-Za-z]?=*\S*)\((.*)[,]*\)")
-        match=pattern.search(line)
-        
+    def parse(self, line: str):
+        """Custom commandline parser"""
+        pattern = re.compile(r"([A-Za-z]?=*\S*)\.([A-Za-z]?=*\S*)\((.*)[,]*\)")
+        match = pattern.search(line)
+
         return_value = line
         # get list of supported cmd commands
         names = self.get_names()
         # commands = line.strip().split(".")
-        
         # Handle dotted command
         if match and len(match.groups()) >= 2:
             # mtd, *args = mtd.split("(")
-            cls, mtd, args = match.groups()
-            
             try:
+                (cls, mtd, args) = match.groups()
+
                 # keyworded argument
                 if mtd in [x[3:] for x in names
                            if x.startswith("do_")]:
                     command = "{} {} {}".format(mtd, cls, args)
-                    
+
                     return_value = command
             except Exception as e:
-                print("\n[ERR! ({})]\n".format(e), file=sys.stderr)
+                print("[**parse**] ({})".format(e), file=sys.stderr)
                 pass
+
         return return_value
 
-    
-def parseArgs(arg):
-    """  """
-    
-    pattern = re.compile(r'^((\s*\w+\s*)=(\s*\S+\s*))*$'
-)
-    
-    keyed = pattern.findall(arg)
-    args = []
-    for text in arg.split(','):
-        text = text[0].replace("'","").replace('"','') + text[1:len(text)-1].replace('_', ' ').replace('"',r'\"').replace("'","\'")+text[len(text)-1].replace("'","").replace('"','')
-        args.append(text.replace('_', ' '))
-    
-    if len(keyed) > 0:
-        arg_pattern = re.compile(r"\S+=(?:\"[^\"]*\"|[^, ]*)+")
-        found = arg_pattern.findall(arg)
-        if len(found) > 0:
-            args = found
-        
+
+def parseArgs(arg: str):
+    """ Parses commandline arguments as tuple or dict
+    If arguments are of the format `<key>`=`<value>`\
+        return a dictionary of key value pairs
+    else
+    return `tuple`
+
+    Returns:
+        (`dict` | `tuple`)
+    """
+
+    keyed_pattern = re.compile(r"\S+=(?:\"[^\"]*\"|[^, ]*)+")
+    keyed_args = keyed_pattern.findall(arg)
+
+    if len(keyed_args) > 0:
         param = dict()
-        for part in args:
-            match = pattern.search(part)
-            groups = match.groups()
-            
-            if match:
-                key = match.group(2)
-                value = match.group(3)
-                value = value[0].replace('"', '').replace("'", '') +value[1:len(value)-1]+ value[len(value)-1].replace('"','').replace("'", '')
-                
+        for part in keyed_args:
+            match = part.partition("=")
+            print("match", match)
+            key = match[0]
+            value = match[2]
+            if key and value:
+                value = value[0].replace('"', '').replace(
+                    "'", '') + value[1:len(value)-1] + value[len(value)-1].\
+                    replace('"', '').replace("'", '')
+
                 if key is not None and value is not None:
                     try:
                         value = value.replace('_', ' ').replace('"', r'\"')
@@ -347,23 +345,37 @@ def parseArgs(arg):
                         pass
                     else:
                         param[key.strip()] = value.strip()
-                        
+
         return param
+    else:
+        args = []
+        nonkeyed_pattern = re.compile(r'[, ]+')
+        nonkeyed_args = nonkeyed_pattern.split(arg)
+        for text in nonkeyed_args:
+            text = text[0].replace("'", "").replace('"', '') \
+                + text[1:len(text)-1].replace('_', ' ')\
+                .replace('"', r'\"').replace("'", "\'")\
+                + text[len(text)-1].replace("'", "").replace('"', '')
+            args.append(text.replace('_', ' '))
     return tuple(args)
 
-def isValidInt(text:str)->bool:
+
+def isValidInt(text: str) -> bool:
     """ Check if string is an integer """
     pattern = re.compile(r"^-?\d+$")
     return bool(pattern.match(text))
-    
-def isValidFloat(num:str)->bool:
+
+
+def isValidFloat(num: str) -> bool:
     """ Check if string is a float """
     pattern = re.compile(r"^-?\d+(?:\.\d+)?$")
     return bool(pattern.match(num))
-    
-def isValidBool(value:str)->bool:
+
+
+def isValidBool(value: str) -> bool:
     """ Check if string is a boolean """
     return value.lower() in ['true', 'false']
-    
+
+
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
