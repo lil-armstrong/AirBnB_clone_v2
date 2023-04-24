@@ -20,5 +20,6 @@ class City(BaseModel):
         Parameters:
             [name, state_id]
         """
-        self.name=args[0]
-        self.state_id=args[0]
+        [name, state_id] = args
+        self.name=name
+        self.state_id=state_id

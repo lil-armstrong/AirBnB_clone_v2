@@ -19,13 +19,18 @@ class BaseModel:
             if (len(kwargs) != 0):
                 for k, v in kwargs.items():
                     if k != "__class__":
-                        if (k in ["created_at", "updated_at"]):
-                            v = datetime.fromisoformat(v)
-                        self.__dict__[k] = v
+                        if hasattr(self, k):
+                            attr_type = type(getattr(self,k))
+                            print(attr_type, k)
+                            if (k in ["created_at", "updated_at"]):
+                                v = datetime.fromisoformat(v)
+                            else:
+                                v = attr_type(v)
+                            setattr(self, k, v)
             else:
                 self.mapInput(*args) 
         except Exception as e:
-            print(e)
+            raise e
             return None
         else:
             models.storage.new(self)

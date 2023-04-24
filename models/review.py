@@ -19,8 +19,9 @@ class Review(BaseModel):
         """ Maps non keyworded arguments 
         
         Parameters:
-            [name, state_id]
+            [text, name, state_id]
         """
-        self.text=args[0]
-        self.place_id=args[1]
-        self.user_id=args[2]
+        [text, place_id, user_id] = args
+        self.text=text
+        self.place_id=place_id
+        self.user_id=user_id

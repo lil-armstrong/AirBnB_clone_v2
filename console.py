@@ -129,7 +129,7 @@ The question mark "\x1b[34m\x1b[1m?\x1b[0m" can be used as an alias for
         for cmd in commands:
             Cmd.do_help(self, cmd)
 
-    def do_create(self, line:str=""):
+    def do_create(self, line:str)->None:
         """Usage: create <class>
 Create a new class instance and print its id.\n
 
@@ -147,6 +147,7 @@ Parameters:
                 self.stdout.write("** class doesn't exist **\n")
                 return False
         parg = parseArgs(args)
+        # print(parg)
         cls = eval(cmd)
         
         if isinstance(parg, (tuple,)):
@@ -154,9 +155,9 @@ Parameters:
         else:
             new = cls(**parg)
         print(new)
-        # if(new is not None):
-            # storage.save()
-            # self.stdout.write("{}\n".format(new.id))
+        if(new is not None):
+            storage.save()
+            self.stdout.write("{}\n".format(new.id))
 
     def do_show(self, line):
         """show model id
@@ -316,14 +317,19 @@ def parseArgs(arg):
     
     pattern = re.compile(r'^((\s*\w+\s*)=(\s*\S+\s*))*$'
 )
-    keyed = pattern.findall(arg)
     
-    args = tuple(t.replace('_', ' ').replace('"', r'\"') for t in arg.split(','))
+    keyed = pattern.findall(arg)
+    args = []
+    for text in arg.split(','):
+        text = text[0].replace("'","").replace('"','') + text[1:len(text)-1].replace('_', ' ').replace('"',r'\"').replace("'","\'")+text[len(text)-1].replace("'","").replace('"','')
+        args.append(text.replace('_', ' '))
+    
     if len(keyed) > 0:
-        arg_pattern = re.compile(r"\S+=(?:\"[^\"]*\"|[^,]*)+")
+        arg_pattern = re.compile(r"\S+=(?:\"[^\"]*\"|[^, ]*)+")
         found = arg_pattern.findall(arg)
         if len(found) > 0:
             args = found
+        
         param = dict()
         for part in args:
             match = pattern.search(part)
@@ -332,17 +338,18 @@ def parseArgs(arg):
             if match:
                 key = match.group(2)
                 value = match.group(3)
+                value = value[0].replace('"', '').replace("'", '') +value[1:len(value)-1]+ value[len(value)-1].replace('"','').replace("'", '')
+                
                 if key is not None and value is not None:
                     try:
                         value = value.replace('_', ' ').replace('"', r'\"')
                     except Exception as e:
                         pass
                     else:
-                        print(value)
                         param[key.strip()] = value.strip()
                         
         return param
-    return args
+    return tuple(args)
 
 def isValidInt(text:str)->bool:
     """ Check if string is an integer """

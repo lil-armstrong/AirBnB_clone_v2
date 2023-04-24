@@ -22,9 +22,9 @@ class User(BaseModel):
         Parameters:
             [email, password, first_name, last_name]
         """
-        print(self.__class__.__name__, args)
-        self.email = args[0]
-        self.password = args[1]
-        self.first_name = args[2]
-        self.last_name = args[3]
+        [email, password, first_name, last_name]=args
+        self.email = email
+        self.password = password
+        self.first_name = first_name
+        self.last_name = last_name
         

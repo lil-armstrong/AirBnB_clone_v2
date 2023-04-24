@@ -7,8 +7,17 @@ class Amenity(BaseModel):
     """Amenity class definition
     Represent a Amenity model object
     """
-    name = ""
+    name:str = ""
 
     def __init__(self, *args, **kwargs):
         """Instantiate Amenity object"""
         super().__init__(*args, **kwargs)
+    
+    def mapInput(self, *args):
+        """ Maps non keyworded arguments 
+        
+        Parameters:
+            [name]
+        """
+        [name] = args
+        self.name=name
