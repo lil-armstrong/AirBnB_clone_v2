@@ -43,9 +43,9 @@ class FileStorage:
 
     def delete(self, obj: BaseModel = None):
         """Removes a key from the __objects"""
+        objs = FileStorage.__objects
         if obj is not None:
             # Checks if the key exist
-            objs = FileStorage.__objects
             key = FileStorage.makeKey(obj.__class__.__name__, obj.id)
             if key in objs:
                 del objs[key]

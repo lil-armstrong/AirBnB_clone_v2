@@ -19,7 +19,6 @@ class BaseModel:
             if (len(kwargs) != 0):
                 for k, v in kwargs.items():
                     if k != "__class__":
-                        print(self)
                         if not hasattr(self, k):
                             raise AttributeError(
                                 "Invalid attribute: [{}]".format(k))
