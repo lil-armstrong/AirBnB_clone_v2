@@ -181,7 +181,7 @@ Delete a class instance based on the model name and id.
                     key = storage.makeKey(cmd, id)
                     instance = self.getInstanceByKey(key)
                     if (instance is not None):
-                        storage.remove(key)
+                        storage.remove(instance)
                         storage.save()
 
     def do_count(self, line: str):

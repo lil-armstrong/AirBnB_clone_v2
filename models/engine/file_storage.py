@@ -30,7 +30,7 @@ class FileStorage:
         """Return the file path"""
         return FileStorage.__file_path
 
-    def all(self):
+    def all(self, cls=None):
         """Returns the dictionary __objects"""
         return FileStorage.__objects
 
@@ -40,12 +40,15 @@ class FileStorage:
         key = FileStorage.makeKey(obj.__class__.__name__, obj.id)
         FileStorage.__objects[key] = obj
         return obj
-    def remove(self, key:str):
+
+    def delete(self, obj: BaseModel = None):
         """Removes a key from the __objects"""
-        # Checks if the key exist
-        objs = FileStorage.__objects
-        if key in objs:
-            del objs[key]
+        if obj is not None:
+            # Checks if the key exist
+            objs = FileStorage.__objects
+            key = FileStorage.makeKey(obj.__class__.__name__, obj.id)
+            if key in objs:
+                del objs[key]
 
         return objs
 
@@ -68,6 +71,6 @@ class FileStorage:
                     self.new(eval(cls_name)(**v))
 
     @staticmethod
-    def makeKey(cls_name, id:str):
+    def makeKey(cls_name, id: str):
         """Generates a storage key using the class name and id"""
         return "{}.{}".format(cls_name, id)
