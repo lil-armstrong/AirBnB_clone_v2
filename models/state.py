@@ -14,8 +14,8 @@ class State(BaseModel):
     """
     __tablename__ = 'states'
     name = Column(String(128), nullable=False)
-    cities = relationship("City", cascade='all, delete, delete-orphan',
-                          backref="state")
+    # cities = relationship("City", cascade='all, delete, delete-orphan',
+    #                       backref="state")
 
     def mapInput(self, *args: str):
         """ Maps non keyworded arguments

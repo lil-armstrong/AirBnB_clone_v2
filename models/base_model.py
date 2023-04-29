@@ -14,7 +14,7 @@ class BaseModel(Base):
     """defines all common attributes/methods for other classes"""
     __abstract__ = True
     id = Column(String(60), Sequence(name='id_seq'),
-                primary_key=True, autoincrement=True)
+                primary_key=True, nullable=False)
     created_at = Column(DateTime, nullable=False,
                         default=datetime.utcnow())
     updated_at = Column(DateTime, nullable=False,
@@ -60,7 +60,7 @@ class BaseModel(Base):
         return "[{}] ({}) {}".format(
             self.__class__.__name__,
             self.id,
-            self.__dict__)
+            self.to_dict())
 
     def save(self):
         """Save the instance object"""

@@ -144,12 +144,12 @@ Parameters:
         parg = parseArgs(args)
 
         if isinstance(parg, (tuple,)):
-            new = cls(*parg)
+            instance = cls(*parg)
         else:
-            new = cls(**parg)
+            instance = cls(**parg)
 
-        storage.save()
-        self.stdout.write("{}\n".format(new.id))
+        instance.save()
+        self.stdout.write("{}\n".format(instance.id))
 
     def do_show(self, line: str):
         """show model id
@@ -215,7 +215,6 @@ Display string representations of all instances of a given class.
 If no class is specified, displays all instantiated objects.
 """
         (cmd, args, ln) = Cmd.parseline(self, line)
-        stored = storage.all()
         found = []
 
         if ln:
@@ -224,13 +223,17 @@ If no class is specified, displays all instantiated objects.
                 if model not in HBNBCommand.__classes:
                     print("** class doesn't exist **", file=sys.stderr)
                 else:
+                    model = eval(model)
+                    stored = storage.all(model)
                     for obj in stored.values():
-                        if model == obj.__class__.__name__:
-                            found.append(str(obj))
+                        found.append(str(obj))
         else:
+            stored = storage.all()
             found = [str(v) for v in stored.values()]
-        for f in found:
-            print([f])
+
+        print(found)
+        # for f in found:
+        #     print([f])
 
     def do_update(self, line: str):
         """update
@@ -303,7 +306,6 @@ attribute.
                 print("[**parse**] ({})".format(e), file=sys.stderr)
                 pass
 
-        print(return_value)
         return return_value
 
 

@@ -18,10 +18,10 @@ class City(BaseModel):
 
     __tablename__ = 'cities'
     name = Column(String(128), nullable=False)
-    state_id = Column(String(60), ForeignKey('state.id'), nullable=False)
-    # state = relationship('State',
-    #                      backref=backref('cities',
-    #                                      cascade='all, delete, delete-orphan'))
+    state_id = Column(String(60), ForeignKey('states.id'), nullable=False)
+    state = relationship('State',
+                         backref=backref('cities',
+                                         cascade='all, delete, delete-orphan'))
 
     def mapInput(self, args: Tuple[str, str]):
         """ Maps non keyworded arguments
