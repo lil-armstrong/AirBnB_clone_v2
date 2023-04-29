@@ -6,12 +6,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship
 
 from models.base_model import BaseModel
+from models.base_model import Base
 from models.state import State
 
 """City model module"""
 
 
-class City(BaseModel):
+class City(BaseModel, Base):
     """City class definition
     Represent a City model object
     """

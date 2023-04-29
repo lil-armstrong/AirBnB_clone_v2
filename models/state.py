@@ -1,14 +1,14 @@
 #!/usr/bin/python3
-from models.base_model import BaseModel
-from typing import Tuple, Union
+from sqlalchemy import Column, ForeignKey, MetaData, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy import (Column, String, MetaData, ForeignKey)
+
+from models.base_model import Base, BaseModel
 
 """State model module"""
 
 
-class State(BaseModel):
+class State(BaseModel, Base):
     """State class definition
     Represent a state model object
     """
