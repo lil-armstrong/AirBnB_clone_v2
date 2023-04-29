@@ -1,17 +1,17 @@
 #!/usr/bin/python3
-from cmd import Cmd
-from models.base_model import BaseModel
-from models.user import User
-from models.amenity import Amenity
-from models.city import City
-from models.place import Place
-from models.review import Review
-from models.state import State
-import models
-import signal
 import re
 import sys
-import json
+from cmd import Cmd
+
+import models
+from models.base_model import BaseModel
+# from models.amenity import Amenity
+from models.city import City
+# from models.place import Place
+# from models.review import Review
+from models.state import State
+from models.user import User
+
 storage = models.storage
 
 """Console module is the entry point of the command interpreter"""
@@ -142,12 +142,12 @@ Parameters:
         cls = eval(cmd)
 
         parg = parseArgs(args)
-        print(parg)
 
         if isinstance(parg, (tuple,)):
             new = cls(*parg)
         else:
             new = cls(**parg)
+
         storage.save()
         self.stdout.write("{}\n".format(new.id))
 

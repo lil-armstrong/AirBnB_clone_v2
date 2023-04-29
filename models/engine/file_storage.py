@@ -1,21 +1,16 @@
 #!/usr/bin/python3
-import os
 import json
-from models import base_model
-from models import user
-from models import amenity
-from models import city
-from models import place
-from models import review
-from models import state
+import os
+
+from models import base_model, city, state
+
+# from models import place
+# from models import review
+# from models import user
+# from models import amenity
 
 BaseModel = base_model.BaseModel
-User = user.User
-Amenity = amenity.Amenity
-City = city.City
-Place = place.Place
-Review = review.Review
-State = state.State
+
 """FileStorage serializes class instances to a JSON file
 and deserializes JSON file to instances"""
 

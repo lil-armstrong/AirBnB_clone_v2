@@ -1,7 +1,10 @@
 #!/usr/bin/python3
-from models.base_model import BaseModel
+from models.base_model import BaseModel, Base
 from typing import Tuple
 """Amenity model module"""
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 
 class Amenity(BaseModel):
