@@ -34,15 +34,9 @@ class HBNBCommand (Cmd):
         "Place",
     }
 
-    def __init__(self, prompt="(hbnb) "):
-        """Initializes the cmd interpreter instance.\n"""
-        super().__init__()
-        HBNBCommand.intro = ""
-        HBNBCommand.prompt = prompt
-        HBNBCommand.file = "cmd.json"
-        # self.do_help()
-        # signal.signal(signal.SIGINT, handler=self._ctrl_c_handler)
-        self._interrupted = False
+    prompt = "(hbnb) "
+    file = "cmd.json"
+    _interrupted = False
 
     def _ctrl_c_handler(self, signal, frame):
         """Ctrl+C interrupt handler"""
@@ -351,12 +345,14 @@ def parseArgs(arg: str):
         args = []
         nonkeyed_pattern = re.compile(r'[, ]+')
         nonkeyed_args = nonkeyed_pattern.split(arg)
+
         for text in nonkeyed_args:
-            text = text[0].replace("'", "").replace('"', '') \
-                + text[1:len(text)-1].replace('_', ' ')\
-                .replace('"', r'\"').replace("'", "\'")\
-                + text[len(text)-1].replace("'", "").replace('"', '')
-            args.append(text.replace('_', ' '))
+            if text:
+                text = text[0].replace("'", "").replace('"', '') \
+                    + text[1:len(text)-1].replace('_', ' ')\
+                    .replace('"', r'\"').replace("'", "\'")\
+                    + text[len(text)-1].replace("'", "").replace('"', '')
+                args.append(text.replace('_', ' '))
     return tuple(args)
 
 

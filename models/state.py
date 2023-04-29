@@ -20,6 +20,6 @@ class State(BaseModel):
         Returns:
             None
         """
-
-        [name] = args
-        self.name = name
+        if len(args) > 0:
+            [name] = args
+            self.name = name
