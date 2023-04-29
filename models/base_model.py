@@ -22,12 +22,12 @@ class BaseModel(Base):
 
     def __init__(self, created_at=None, updated_at=None, *args, **kwargs):
         """Initializes the base class instance"""
-        super().__init__(**kwargs)
-        self.id = str(uuid4())
-        self.created_at = created_at or datetime.today()
-        self.updated_at = updated_at or datetime.today()
-
         try:
+            super().__init__(**kwargs)
+            self.id = str(uuid4())
+            self.created_at = created_at or datetime.today()
+            self.updated_at = updated_at or datetime.today()
+
             if (len(kwargs) != 0):
                 for k, v in kwargs.items():
                     if k != "__class__":
@@ -75,8 +75,10 @@ class BaseModel(Base):
             del dict_obj['_sa_instance_state']
 
         dict_obj["__class__"] = self.__class__.__name__
-        dict_obj["created_at"] = dict_obj["created_at"].isoformat()
-        dict_obj["updated_at"] = dict_obj["updated_at"].isoformat()
+        if "created_at" in dict_obj:
+            dict_obj["created_at"] = dict_obj["created_at"].isoformat()
+        if "updated_at" in dict_obj:
+            dict_obj["updated_at"] = dict_obj["updated_at"].isoformat()
 
         return dict_obj
 

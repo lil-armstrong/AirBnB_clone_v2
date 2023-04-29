@@ -2,8 +2,9 @@
 import json
 import os
 
-from models import base_model, city, state
-
+from models import base_model
+from models.state import State
+from models.city import City
 # from models import place
 # from models import review
 # from models import user
@@ -70,8 +71,10 @@ class FileStorage:
                 serialized = json.load(fp)
 
                 for v in serialized.values():
+
                     cls_name = v["__class__"]
-                    self.new(eval(cls_name)(**v))
+                    cls = eval(cls_name)
+                    self.new(cls(**v))
 
     @staticmethod
     def makeKey(cls_name, id: str):

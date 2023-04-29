@@ -305,7 +305,6 @@ attribute.
             except Exception as e:
                 print("[**parse**] ({})".format(e), file=sys.stderr)
                 pass
-
         return return_value
 
 
