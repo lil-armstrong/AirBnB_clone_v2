@@ -30,9 +30,17 @@ class FileStorage:
         """Return the file path"""
         return FileStorage.__file_path
 
-    def all(self, cls=None):
+    def all(self, cls: BaseModel = None):
         """Returns the dictionary __objects"""
-        return FileStorage.__objects
+
+        stored = FileStorage.__objects
+        if cls is not None:
+            result = dict()
+            for obj in stored:
+                if stored[obj].__class__.__name__ == cls.__name__:
+                    result[obj] = stored[obj]
+            return result
+        return stored
 
     def new(self, obj):
         """sets in __objects the obj with key <obj class name>.id"""

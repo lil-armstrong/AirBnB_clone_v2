@@ -217,6 +217,7 @@ If no class is specified, displays all instantiated objects.
         (cmd, args, ln) = Cmd.parseline(self, line)
         stored = storage.all()
         found = []
+
         if ln:
             models = set(re.split(r'[, ]+', ln))
             for model in models:
