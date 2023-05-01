@@ -87,6 +87,11 @@ class BaseModel(Base):
             self.id,
             self.__dict__)
 
+    def __repr__(self):
+        """return a string representaion
+        """
+        return self.__str__()
+
     def save(self):
         """Save the instance object"""
         models.storage.new(self)
