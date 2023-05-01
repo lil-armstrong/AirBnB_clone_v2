@@ -1,7 +1,9 @@
 #!/usr/bin/python3
-from models.base_model import BaseModel
-from sqlalchemy import (Column, String, MetaData, ForeignKey)
+from sqlalchemy import Column, MetaData, String
 from sqlalchemy.ext.declarative import declarative_base
+
+from models.base_model import BaseModel
+
 """User model module"""
 
 
@@ -14,13 +16,13 @@ class User(BaseModel):
     Represent a user model object
     """
     __tablename__ = "users"
-    email = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
+    email = Column(String(128), unique=True, nullable=False)
+    password = Column(String(128), nullable=False)
+    first_name = Column(String(128), nullable=False)
+    last_name = Column(String(128), nullable=False)
 
     def mapInput(self, *args):
-        """ Maps non keyworded arguments 
+        """ Maps non keyworded arguments
 
         Parameters:
             [email, password, first_name, last_name]

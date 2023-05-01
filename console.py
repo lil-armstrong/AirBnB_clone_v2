@@ -1,17 +1,17 @@
 #!/usr/bin/python3
+from cmd import Cmd
+from models.base_model import BaseModel
+from models.user import User
+from models.amenity import Amenity
+from models.city import City
+from models.place import Place
+from models.review import Review
+from models.state import State
+import models
+import signal
 import re
 import sys
-from cmd import Cmd
-
-import models
-from models.base_model import BaseModel
-# from models.amenity import Amenity
-from models.city import City
-# from models.place import Place
-# from models.review import Review
-from models.state import State
-from models.user import User
-
+import json
 storage = models.storage
 
 """Console module is the entry point of the command interpreter"""
@@ -130,26 +130,31 @@ Create a new class instance and print its id.\n
 Parameters:
   line(str): commandline expression
 """
-        (cmd, args, ln) = Cmd.parseline(self, line)
-        if cmd is None:
-            self.stdout.write("** class name missing **\n")
-            return False
-
-        else:
-            if cmd not in HBNBCommand.__classes:
-                self.stdout.write("** class doesn't exist **\n")
+        try:
+            (cmd, args, ln) = Cmd.parseline(self, line)
+            if cmd is None:
+                self.stdout.write("** class name missing **\n")
                 return False
-        cls = eval(cmd)
 
-        parg = parseArgs(args)
+            else:
+                if cmd not in HBNBCommand.__classes:
+                    self.stdout.write("** class doesn't exist **\n")
+                    return False
+            cls = eval(cmd)
+            parsed_arg = parseArgs(args)
 
-        if isinstance(parg, (tuple,)):
-            instance = cls(*parg)
+            if isinstance(parsed_arg, (tuple,)):
+                instance = cls(*parsed_arg)
+            elif isinstance(parsed_arg, (dict)):
+                instance = cls(**parsed_arg)
+            else:
+                cls()
+        except Exception as e:
+            print(e, file=sys.stderr)
+            pass
         else:
-            instance = cls(**parg)
-
-        instance.save()
-        self.stdout.write("{}\n".format(instance.id))
+            instance.save()
+            self.stdout.write("{}\n".format(instance.id))
 
     def do_show(self, line: str):
         """show model id
@@ -181,7 +186,7 @@ Delete a class instance based on the model name and id.
                     key = storage.makeKey(cmd, id)
                     instance = self.getInstanceByKey(key)
                     if (instance is not None):
-                        storage.remove(instance)
+                        storage.remove(key)
                         storage.save()
 
     def do_count(self, line: str):
@@ -215,25 +220,21 @@ Display string representations of all instances of a given class.
 If no class is specified, displays all instantiated objects.
 """
         (cmd, args, ln) = Cmd.parseline(self, line)
+        stored = storage.all()
         found = []
-
         if ln:
             models = set(re.split(r'[, ]+', ln))
             for model in models:
                 if model not in HBNBCommand.__classes:
                     print("** class doesn't exist **", file=sys.stderr)
                 else:
-                    model = eval(model)
-                    stored = storage.all(model)
                     for obj in stored.values():
-                        found.append(str(obj))
+                        if model == obj.__class__.__name__:
+                            found.append(str(obj))
         else:
-            stored = storage.all()
-            found = [str(v) for v in stored.values()]
-
-        print(found)
-        # for f in found:
-        #     print([f])
+            found = [v for v in stored.values()]
+        for f in found:
+            print([f])
 
     def do_update(self, line: str):
         """update
@@ -305,6 +306,7 @@ attribute.
             except Exception as e:
                 print("[**parse**] ({})".format(e), file=sys.stderr)
                 pass
+
         return return_value
 
 
@@ -319,31 +321,19 @@ def parseArgs(arg: str):
         (`dict` | `tuple`)
     """
 
-    keyed_pattern = re.compile(r"\S+=(?:\"[^\"]*\"|[^, ]*)+")
-    keyed_args = keyed_pattern.findall(arg)
+    regex = re.compile(
+        r"(?P<key>\S+)=(?P<quote>['\"]?)(?P<value>(\S+|\d+)?)(?P=quote)")
+    matches = list(re.finditer(regex, arg))
 
-    if len(keyed_args) > 0:
-        param = dict()
-        for part in keyed_args:
-            match = part.partition("=")
-            key = match[0]
-            value = match[2]
-            if key and value:
-                value = value[0].replace('"', '').replace(
-                    "'", '') + value[1:len(value)-1] + value[len(value)-1].\
-                    replace('"', '').replace("'", '')
-
-                if key is not None and value is not None:
-                    try:
-                        value = value.replace('_', ' ').replace('"', r'\"')
-                    except Exception as e:
-                        pass
-                    else:
-                        param[key.strip()] = value.strip()
-
-        return param
+    if len(matches) > 0:
+        result = dict()
+        for match in matches:
+            key = match.group('key')
+            value = match.group('value')
+            result[key] = value.replace("_", " ")
+        return result
     else:
-        args = []
+        result = []
         nonkeyed_pattern = re.compile(r'[, ]+')
         nonkeyed_args = nonkeyed_pattern.split(arg)
 
@@ -353,8 +343,8 @@ def parseArgs(arg: str):
                     + text[1:len(text)-1].replace('_', ' ')\
                     .replace('"', r'\"').replace("'", "\'")\
                     + text[len(text)-1].replace("'", "").replace('"', '')
-                args.append(text.replace('_', ' '))
-    return tuple(args)
+                result.append(text.replace('_', ' '))
+        return tuple(result)
 
 
 def isValidInt(text: str) -> bool:

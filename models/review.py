@@ -1,6 +1,10 @@
 #!/usr/bin/python3
+from sqlalchemy import Column, ForeignKey, String
+
 from models.base_model import BaseModel
-from typing import Tuple
+from models.place import Place
+from models.user import User
+
 """Review model module"""
 
 
@@ -8,9 +12,10 @@ class Review(BaseModel):
     """Review class definition
     Represent a Review model object
     """
-    text: str = ""
-    place_id: str = ""
-    user_id: str = ""
+    __tablename__ = "reviews"
+    text = Column(String(128), nullable=False)
+    place_id = Column(String(60), ForeignKey("places.id"), nullable=False)
+    user_id = Column(String(60), ForeignKey("users.id"), nullable=False)
 
     def mapInput(self, *args: str):
         """ Maps non keyworded arguments

@@ -15,6 +15,7 @@ class City(BaseModel):
     """City class definition
     Represent a City model object
     """
+    VALID_ATTR = {'name': str, 'state_id': str}
 
     __tablename__ = 'cities'
     name = Column(String(128), nullable=False)

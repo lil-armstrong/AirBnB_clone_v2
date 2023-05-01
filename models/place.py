@@ -1,6 +1,14 @@
 #!/usr/bin/python3
-from models.base_model import BaseModel, Base
 from typing import Tuple, Union
+
+from sqlalchemy import Column, MetaData, Integer, Float, ForeignKey, String
+from sqlalchemy.orm import backref, relationship
+
+from models.base_model import Base, BaseModel
+from models.city import City
+from models.user import User
+from models.amenity import Amenity
+
 """Place model module"""
 
 
@@ -8,17 +16,28 @@ class Place(BaseModel):
     """Place class definition
     Represent a Place model object
     """
-    name: str = ""
-    city_id: str = ""
-    user_id: str = ""
-    max_guest: str = ""
-    amenity_id: str = ""
-    description: str = ""
-    number_rooms: int = 0
-    price_by_night: int = 0
-    number_bathrooms: int = 0
-    latitude: float = 0.0
-    longitude: float = 0.0
+    __tablename__ = "places"
+    name = Column(String(128), unique=True, nullable=False)
+    city_id = Column(String(60), ForeignKey("cities.id"), nullable=False)
+    user_id = Column(String(60), ForeignKey("users.id"), nullable=False)
+    amenity_id = Column(String(60), ForeignKey("amenities.id"), nullable=False)
+    max_guest = Column(Integer, default=0)
+    description = Column(String(128), nullable=False)
+    number_rooms = Column(Integer, default=0, nullable=False)
+    price_by_night = Column(Integer, default=0, nullable=False)
+    number_bathrooms = Column(Integer, default=0, nullable=False)
+    latitude = Column(Float, nullable=False, default=0.0)
+    longitude = Column(Float, nullable=False, default=0.0)
+    user = relationship('User',
+                        backref=backref('places',
+                                        cascade='all, delete, delete-orphan'))
+    city = relationship('City',
+                        backref=backref('places',
+                                        cascade='all, delete, delete-orphan'))
+    amenity = relationship(
+        'Amenity',
+        backref=backref('places',
+                        cascade='all, delete, delete-orphan'))
 
     def mapInput(self, *args: Union[str, int, float]) -> None:
         """ Maps non keyworded arguments

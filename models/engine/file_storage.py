@@ -5,10 +5,10 @@ import os
 from models import base_model
 from models.state import State
 from models.city import City
-# from models import place
-# from models import review
-# from models import user
-# from models import amenity
+from models.user import User
+from models.place import Place
+from models.review import Review
+from models.amenity import Amenity
 
 BaseModel = base_model.BaseModel
 
@@ -59,9 +59,9 @@ class FileStorage:
     def save(self):
         """Serializes __objects to the JSON file (path: __file_path)"""
         odict = FileStorage.__objects
-        objdict = {obj: odict[obj].to_dict() for obj in odict.keys()}
+        obj_dict = {obj: odict[obj].to_dict() for obj in odict.keys()}
         with open(self.filePath, "w") as f:
-            json.dump(objdict, f)
+            json.dump(obj_dict, f)
 
     def reload(self):
         """Deserializes the JSON file to __objects"""
