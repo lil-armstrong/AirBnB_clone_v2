@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 import json
 import os
+from typing import Dict, Optional, Type
 
-from models import base_model
+from models.base_model import BaseModel
 from models.state import State
 from models.city import City
 from models.user import User
@@ -10,73 +11,45 @@ from models.place import Place
 from models.review import Review
 from models.amenity import Amenity
 
-BaseModel = base_model.BaseModel
-
-"""FileStorage serializes class instances to a JSON file
-and deserializes JSON file to instances"""
-
 
 class FileStorage:
-    """FileStorage class"""
     __file_path = "file.json"
-    __objects = {}
+    __objects: Dict[str, BaseModel] = {}
 
     @property
-    def filePath(self):
-        """Return the file path"""
-        return FileStorage.__file_path
+    def filePath(self) -> str:
+        return self.__file_path
 
-    def all(self, cls: BaseModel = None):
-        """Returns the dictionary __objects"""
-
-        stored = FileStorage.__objects
+    def all(self, cls: Optional[Type[BaseModel]] = None) -> Dict[str, BaseModel]:
+        stored = self.__objects
         if cls is not None:
-            result = dict()
-            for obj in stored:
-                if stored[obj].__class__.__name__ == cls.__name__:
-                    result[obj] = stored[obj]
-            return result
+            return {obj_id: obj for obj_id, obj in stored.items() if isinstance(obj, cls)}
         return stored
 
-    def new(self, obj):
-        """sets in __objects the obj with key <obj class name>.id"""
-
-        key = FileStorage.makeKey(obj.__class__.__name__, obj.id)
-        FileStorage.__objects[key] = obj
+    def new(self, obj: BaseModel) -> BaseModel:
+        key = self.makeKey(obj.__class__.__name__, obj.id)
+        self.__objects[key] = obj
         return obj
 
-    def delete(self, obj: BaseModel = None):
-        """Removes a key from the __objects"""
-        objs = FileStorage.__objects
+    def delete(self, obj: Optional[BaseModel] = None):
         if obj is not None:
-            # Checks if the key exist
-            key = FileStorage.makeKey(obj.__class__.__name__, obj.id)
-            if key in objs:
-                del objs[key]
-
-        return objs
+            key = self.makeKey(obj.__class__.__name__, obj.id)
+            self.__objects.pop(key, None)
 
     def save(self):
-        """Serializes __objects to the JSON file (path: __file_path)"""
-        odict = FileStorage.__objects
-        obj_dict = {obj: odict[obj].to_dict() for obj in odict.keys()}
+        obj_dict = {obj_id: obj.to_dict() for obj_id, obj in self.__objects.items()}
         with open(self.filePath, "w") as f:
             json.dump(obj_dict, f)
 
     def reload(self):
-        """Deserializes the JSON file to __objects"""
         if os.path.exists(self.filePath):
             with open(self.filePath, "r") as fp:
-                # deserialize json file to __objects
                 serialized = json.load(fp)
-
-                for v in serialized.values():
-
-                    cls_name = v["__class__"]
+                for obj_data in serialized.values():
+                    cls_name = obj_data["__class__"]
                     cls = eval(cls_name)
-                    self.new(cls(**v))
+                    self.new(cls(**obj_data))
 
     @staticmethod
-    def makeKey(cls_name, id: str):
-        """Generates a storage key using the class name and id"""
-        return "{}.{}".format(cls_name, id)
+    def makeKey(cls_name: str, obj_id: str) -> str:
+        return f"{cls_name}.{obj_id}"
