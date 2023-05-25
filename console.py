@@ -130,31 +130,26 @@ Create a new class instance and print its id.\n
 Parameters:
   line(str): commandline expression
 """
-        try:
-            (cmd, args, ln) = Cmd.parseline(self, line)
-            if cmd is None:
-                self.stdout.write("** class name missing **\n")
-                return False
+        (cmd, args, ln) = Cmd.parseline(self, line)
+        if cmd is None:
+            self.stdout.write("** class name missing **\n")
+            return False
 
-            else:
-                if cmd not in HBNBCommand.__classes:
-                    self.stdout.write("** class doesn't exist **\n")
-                    return False
-            cls = eval(cmd)
-            parsed_arg = parseArgs(args)
-
-            if isinstance(parsed_arg, (tuple,)):
-                instance = cls(*parsed_arg)
-            elif isinstance(parsed_arg, (dict)):
-                instance = cls(**parsed_arg)
-            else:
-                cls()
-        except Exception as e:
-            print(e, file=sys.stderr)
-            pass
         else:
-            instance.save()
-            self.stdout.write("{}\n".format(instance.id))
+            if cmd not in HBNBCommand.__classes:
+                self.stdout.write("** class doesn't exist **\n")
+                return False
+        cls = eval(cmd)
+
+        parg = parseArgs(args)
+        print(parg)
+
+        if isinstance(parg, (tuple,)):
+            new = cls(*parg)
+        else:
+            new = cls(**parg)
+        storage.save()
+        self.stdout.write("{}\n".format(new.id))
 
     def do_show(self, line: str):
         """show model id
@@ -232,7 +227,7 @@ If no class is specified, displays all instantiated objects.
                         if model == obj.__class__.__name__:
                             found.append(str(obj))
         else:
-            found = [v for v in stored.values()]
+            found = [str(v) for v in stored.values()]
         for f in found:
             print([f])
 
@@ -307,6 +302,7 @@ attribute.
                 print("[**parse**] ({})".format(e), file=sys.stderr)
                 pass
 
+        print(return_value)
         return return_value
 
 
@@ -321,19 +317,31 @@ def parseArgs(arg: str):
         (`dict` | `tuple`)
     """
 
-    regex = re.compile(
-        r"(?P<key>\S+)=(?P<quote>['\"]?)(?P<value>(\S+|\d+)?)(?P=quote)")
-    matches = list(re.finditer(regex, arg))
+    keyed_pattern = re.compile(r"\S+=(?:\"[^\"]*\"|[^, ]*)+")
+    keyed_args = keyed_pattern.findall(arg)
 
-    if len(matches) > 0:
-        result = dict()
-        for match in matches:
-            key = match.group('key')
-            value = match.group('value')
-            result[key] = value.replace("_", " ")
-        return result
+    if len(keyed_args) > 0:
+        param = dict()
+        for part in keyed_args:
+            match = part.partition("=")
+            key = match[0]
+            value = match[2]
+            if key and value:
+                value = value[0].replace('"', '').replace(
+                    "'", '') + value[1:len(value)-1] + value[len(value)-1].\
+                    replace('"', '').replace("'", '')
+
+                if key is not None and value is not None:
+                    try:
+                        value = value.replace('_', ' ').replace('"', r'\"')
+                    except Exception as e:
+                        pass
+                    else:
+                        param[key.strip()] = value.strip()
+
+        return param
     else:
-        result = []
+        args = []
         nonkeyed_pattern = re.compile(r'[, ]+')
         nonkeyed_args = nonkeyed_pattern.split(arg)
 
@@ -343,8 +351,8 @@ def parseArgs(arg: str):
                     + text[1:len(text)-1].replace('_', ' ')\
                     .replace('"', r'\"').replace("'", "\'")\
                     + text[len(text)-1].replace("'", "").replace('"', '')
-                result.append(text.replace('_', ' '))
-        return tuple(result)
+                args.append(text.replace('_', ' '))
+    return tuple(args)
 
 
 def isValidInt(text: str) -> bool:
