@@ -17,7 +17,7 @@ def hbnb():
     return "HBNB"
 
 
-@app.route("/c/", methods=['GET'], strict_slashes=False)
+@app.route("/c/<name>", methods=['GET'], strict_slashes=False)
 def hbnb(name=""):
     """Dynamic route to /c/<name>"""
     return "C "+name.replace('_', ' ')
