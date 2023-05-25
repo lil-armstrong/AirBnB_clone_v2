@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """script that starts a Flask web application"""
 from flask import Flask
-
+from markupsafe import escape
 app = Flask(__name__)
 
 
@@ -20,7 +20,7 @@ def hbnb():
 @app.route("/c/<name>", methods=['GET'], strict_slashes=False)
 def hbnb(name=""):
     """Dynamic route to /c/<name>"""
-    return "C "+name.replace('_', ' ')
+    return "C "+escape(name).replace('_', ' ')
 
 
 if __name__ == "__main__":
