@@ -18,9 +18,9 @@ def hbnb():
 
 
 @app.route("/c/<name>", methods=['GET'], strict_slashes=False)
-def hbnb(name=""):
+def cisfun(name=""):
     """Dynamic route to /c/<name>"""
-    return "C "+escape(name).replace('_', ' ')
+    return "C %s" % (escape(name).replace('_', ' '))
 
 
 if __name__ == "__main__":
