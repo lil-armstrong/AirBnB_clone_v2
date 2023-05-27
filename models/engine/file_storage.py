@@ -1,55 +1,70 @@
 #!/usr/bin/python3
-import json
-import os
-from typing import Dict, Optional, Type
+"""
+Contains the FileStorage class
+"""
 
+import json
+from models.amenity import Amenity
 from models.base_model import BaseModel
-from models.state import State
 from models.city import City
-from models.user import User
 from models.place import Place
 from models.review import Review
-from models.amenity import Amenity
+from models.state import State
+from models.user import User
+
+classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
+           "Place": Place, "Review": Review, "State": State, "User": User}
 
 
 class FileStorage:
+    """serializes instances to a JSON file & deserializes back to instances"""
+
+    # string - path to the JSON file
     __file_path = "file.json"
-    __objects: Dict[str, BaseModel] = {}
+    # dictionary - empty but will store all objects by <class name>.id
+    __objects = {}
 
-    @property
-    def filePath(self) -> str:
-        return self.__file_path
-
-    def all(self, cls: Optional[Type[BaseModel]] = None) -> Dict[str, BaseModel]:
-        stored = self.__objects
+    def all(self, cls=None):
+        """returns the dictionary __objects"""
         if cls is not None:
-            return {obj_id: obj for obj_id, obj in stored.items() if isinstance(obj, cls)}
-        return stored
+            new_dict = {}
+            for key, value in self.__objects.items():
+                if cls == value.__class__ or cls == value.__class__.__name__:
+                    new_dict[key] = value
+            return new_dict
+        return self.__objects
 
-    def new(self, obj: BaseModel) -> BaseModel:
-        key = self.makeKey(obj.__class__.__name__, obj.id)
-        self.__objects[key] = obj
-        return obj
-
-    def delete(self, obj: Optional[BaseModel] = None):
+    def new(self, obj):
+        """sets in __objects the obj with key <obj class name>.id"""
         if obj is not None:
-            key = self.makeKey(obj.__class__.__name__, obj.id)
-            self.__objects.pop(key, None)
+            key = obj.__class__.__name__ + "." + obj.id
+            self.__objects[key] = obj
 
     def save(self):
-        obj_dict = {obj_id: obj.to_dict() for obj_id, obj in self.__objects.items()}
-        with open(self.filePath, "w") as f:
-            json.dump(obj_dict, f)
+        """serializes __objects to the JSON file (path: __file_path)"""
+        json_objects = {}
+        for key in self.__objects:
+            json_objects[key] = self.__objects[key].to_dict()
+        with open(self.__file_path, 'w') as f:
+            json.dump(json_objects, f)
 
     def reload(self):
-        if os.path.exists(self.filePath):
-            with open(self.filePath, "r") as fp:
-                serialized = json.load(fp)
-                for obj_data in serialized.values():
-                    cls_name = obj_data["__class__"]
-                    cls = eval(cls_name)
-                    self.new(cls(**obj_data))
+        """deserializes the JSON file to __objects"""
+        try:
+            with open(self.__file_path, 'r') as f:
+                jo = json.load(f)
+            for key in jo:
+                self.__objects[key] = classes[jo[key]["__class__"]](**jo[key])
+        except:
+            pass
 
-    @staticmethod
-    def makeKey(cls_name: str, obj_id: str) -> str:
-        return f"{cls_name}.{obj_id}"
+    def delete(self, obj=None):
+        """delete obj from __objects if it’s inside"""
+        if obj is not None:
+            key = obj.__class__.__name__ + '.' + obj.id
+            if key in self.__objects:
+                del self.__objects[key]
+
+    def close(self):
+        """call reload() method for deserializing the JSON file to objects"""
+        self.reload()

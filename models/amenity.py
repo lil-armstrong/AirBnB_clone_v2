@@ -1,27 +1,21 @@
-#!/usr/bin/python3
+#!/usr/bin/python
+""" holds class Amenity"""
+import models
 from models.base_model import BaseModel, Base
-from typing import Tuple
-"""Amenity model module"""
-
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from os import getenv
+import sqlalchemy
 from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
 
 
-class Amenity(BaseModel):
-    """Amenity class definition
-    Represent a Amenity model object
-    """
-    __tablename__ = "amenities"
-    name = Column(String(128), nullable=False)
-    VALID_ATTR = {'name': str}
+class Amenity(BaseModel, Base):
+    """Representation of Amenity """
+    if models.storage_t == 'db':
+        __tablename__ = 'amenities'
+        name = Column(String(128), nullable=False)
+    else:
+        name = ""
 
-    def mapInput(self, *args: str):
-        """ Maps non keyworded arguments
-
-        Parameters:
-            *args (Tuple[name:`str`]):\
-                Amenity attribute argument
-        """
-        [name] = args
-        self.name = name
+    def __init__(self, *args, **kwargs):
+        """initializes Amenity"""
+        super().__init__(*args, **kwargs)
