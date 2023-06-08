@@ -1,19 +1,26 @@
 #!/usr/bin/python3
-from sqlalchemy import Column, String
+""" holds class State"""
+import models
+from models.base_model import BaseModel, Base
+from models.city import City
+from os import getenv
+import sqlalchemy
+from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy.orm import relationship
 
-from models.base_model import BaseModel
 
-"""State model module"""
+class State(BaseModel, Base):
+    """Representation of state """
+    if models.storage_t == "db":
+        __tablename__ = 'states'
+        name = Column(String(128), nullable=False)
+        cities = relationship("City", backref="state")
+    else:
+        name = ""
 
-
-class State(BaseModel):
-    """State class definition
-    Represent a state model object
-    """
-    __tablename__ = 'states'
-    name = Column(String(128), nullable=False)
-
-    VALID_ATTR = {'name': str}
+    def __init__(self, *args, **kwargs):
+        """initializes state"""
+        super().__init__(*args, **kwargs)
 
     def mapInput(self, *args: str):
         """ Maps non keyworded arguments

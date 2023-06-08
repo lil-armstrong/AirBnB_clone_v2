@@ -9,6 +9,9 @@ import models
 """Base Model"""
 from sqlalchemy import Column, DateTime, Integer, Sequence, String
 from sqlalchemy.ext.declarative import declarative_base
+import uuid
+
+time = "%Y-%m-%dT%H:%M:%S.%f"
 
 storage_type = getenv("HBNB_TYPE_STORAGE")
 if storage_type == 'db':
@@ -71,11 +74,9 @@ class BaseModel(Base):
         pass
 
     def __str__(self):
-        """Return string representation of the Base class"""
-        return "[{}] ({}) {}".format(
-            self.__class__.__name__,
-            self.id,
-            self.__dict__)
+        """String representation of the BaseModel class"""
+        return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,
+                                         self.__dict__)
 
     def __repr__(self):
         """return a string representaion
@@ -107,21 +108,5 @@ class BaseModel(Base):
         return dict_obj
 
     def delete(self):
-        """Delete the current instance from the storage"""
+        """delete the current instance from the storage"""
         models.storage.delete(self)
-
-    def update(self, name: str, value: str):
-        """Updates the instance attribute"""
-        try:
-            if not hasattr(self, name):
-                raise AttributeError(
-                    "Invalid attribute: [{}]".format(name))
-            attr_type = type(getattr(self, name))
-            if (name in ["created_at", "updated_at"]):
-                value = datetime.fromisoformat(value)
-            else:
-                value = attr_type(value)
-            setattr(self, name, value)
-        except Exception as e:
-            print(e, file=sys.stderr)
-            pass

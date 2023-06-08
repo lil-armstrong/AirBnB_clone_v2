@@ -1,36 +1,24 @@
-#!/usr/bin/python3
-from typing import Tuple, Union
-
-from sqlalchemy import Column, ForeignKey, MetaData, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship
-
-from models.base_model import BaseModel
-from models.state import State
-
-"""City model module"""
+#!/usr/bin/python
+""" holds class City"""
+import models
+from models.base_model import BaseModel, Base
+from os import getenv
+import sqlalchemy
+from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy.orm import relationship
 
 
-class City(BaseModel):
-    """City class definition
-    Represent a City model object
-    """
-    VALID_ATTR = {'name': str, 'state_id': str}
+class City(BaseModel, Base):
+    """Representation of city """
+    if models.storage_t == "db":
+        __tablename__ = 'cities'
+        state_id = Column(String(60), ForeignKey('states.id'), nullable=False)
+        name = Column(String(128), nullable=False)
+        places = relationship("Place", backref="cities")
+    else:
+        state_id = ""
+        name = ""
 
-    __tablename__ = 'cities'
-    name = Column(String(128), nullable=False)
-    state_id = Column(String(60), ForeignKey('states.id'), nullable=False)
-    # state = relationship('State',
-    #                      backref=backref('cities',
-    #                                      cascade='all, delete, delete-orphan'))
-
-    def mapInput(self, args: Tuple[str, str]):
-        """ Maps non keyworded arguments
-
-        Parameters:
-            args (Tuple[name:`str`,state_id:`str`]):\
-                Tuple argument
-        """
-        [name, state_id] = args
-        self.name = name
-        self.state_id = state_id
+    def __init__(self, *args, **kwargs):
+        """initializes city"""
+        super().__init__(*args, **kwargs)
