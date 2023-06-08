@@ -68,7 +68,6 @@ class DBStorage:
 
         self.__engine = engine
         self.__metadata = metadata
-        self.reload()
 
     def all(self, cls: BaseModel = None):
         """query on the current database session\

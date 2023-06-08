@@ -32,12 +32,12 @@ class FileStorage:
         return obj
 
     def delete(self, obj: Optional[BaseModel] = None):
-        if obj is not None:
-            key = self.makeKey(obj.__class__.__name__, obj.id)
+        if obj is not None:            key = self.makeKey(obj.__class__.__name__, obj.id)
             self.__objects.pop(key, None)
 
     def save(self):
-        obj_dict = {obj_id: obj.to_dict() for obj_id, obj in self.__objects.items()}
+        obj_dict = {obj_id: obj.to_dict()
+                    for obj_id, obj in self.__objects.items()}
         with open(self.filePath, "w") as f:
             json.dump(obj_dict, f)
 

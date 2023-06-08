@@ -1,18 +1,16 @@
 #!/usr/bin/python3
+import re
+import sys
 from cmd import Cmd
-from models.base_model import BaseModel
-from models.user import User
+
+from models import storage
 from models.amenity import Amenity
+from models.base_model import BaseModel
 from models.city import City
 from models.place import Place
 from models.review import Review
 from models.state import State
-import models
-import signal
-import re
-import sys
-import json
-storage = models.storage
+from models.user import User
 
 """Console module is the entry point of the command interpreter"""
 
@@ -86,10 +84,6 @@ class HBNBCommand (Cmd):
         print("** no instance found **", file=sys.stderr)
         return None
 
-    def do_quit(self, line):
-        """Quit command to exit the program.\n"""
-        return True
-
     def do_EOF(self, line):
         """EOF signal to exit the program.\n"""
         return 'quit'
@@ -97,6 +91,10 @@ class HBNBCommand (Cmd):
     def emptyline(self):
         """Override Cmd.emptylines method.\n"""
         pass
+
+    def do_quit(self, line):
+        """Quit command to exit the program.\n"""
+        return True
 
     def do_help(self, line=""):
         """\x1b[32m\x1b[1mhelp\x1b[0m
@@ -142,12 +140,12 @@ Parameters:
         cls = eval(cmd)
 
         parg = parseArgs(args)
-        print(parg)
 
         if isinstance(parg, (tuple,)):
             new = cls(*parg)
         else:
             new = cls(**parg)
+        new.save(update=False)
         storage.save()
         self.stdout.write("{}\n".format(new.id))
 
@@ -302,7 +300,6 @@ attribute.
                 print("[**parse**] ({})".format(e), file=sys.stderr)
                 pass
 
-        print(return_value)
         return return_value
 
 

@@ -26,8 +26,8 @@ class State(BaseModel):
             None
         """
         if len(args) > 0:
-            [name] = args
-            self.name = name
+            if type(args[0]) is self.VALID_ATTR['name']:
+                self.name = args[0]
 
     @property
     def cities(self):
